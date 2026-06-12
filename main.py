@@ -20,7 +20,7 @@ from kivy.clock import Clock
 from kivy.utils import platform
 from kivy.graphics import Color, Rectangle
 
-Window.size = (420, 800)
+if platform != 'android': Window.size = (420, 800)
 
 # ===== FONT =====
 if platform == 'android':
