@@ -23,3 +23,5 @@ android.logcat_filters = *:S python:D
 [buildozer]
 log_level = 2
 warn_on_root = 1
+android.release = False
+android.sign_with_custom_keystore = False
