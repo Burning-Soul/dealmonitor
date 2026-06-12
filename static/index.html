@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>618 比价监测</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0d0d1a; color:#e0e0e0; font-family:'Microsoft YaHei','PingFang SC',sans-serif; max-width:500px; margin:0 auto; }
+.header { background:linear-gradient(135deg,#e8303a,#c0392b); padding:16px; text-align:center; position:sticky; top:0; z-index:10; }
+.header h1 { font-size:20px; color:#fff; }
+.header .stats { font-size:12px; color:rgba(255,255,255,0.8); margin-top:4px; }
+.tabs { display:flex; background:#161625; position:sticky; top:72px; z-index:9; }
+.tab { flex:1; padding:10px; text-align:center; font-size:13px; color:#888; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
+.tab.active { color:#e8303a; border-bottom-color:#e8303a; }
+.card { background:#1a1a2e; margin:8px 12px; border-radius:10px; padding:12px; display:flex; gap:10px; align-items:center; }
+.badge { min-width:40px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; }
+.badge.sss { background:rgba(255,50,50,0.2); color:#ff4d4d; }
+.badge.ss { background:rgba(255,130,30,0.2); color:#ff8c1a; }
+.badge.s { background:rgba(255,180,30,0.2); color:#ffb84d; }
+.badge.a { background:rgba(50,200,100,0.2); color:#4ecb71; }
+.info { flex:1; min-width:0; }
+.info .name { font-size:13px; font-weight:bold; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.info .meta { font-size:11px; color:#777; margin-top:3px; }
+.price { font-size:18px; font-weight:bold; color:#e8303a; white-space:nowrap; min-width:60px; text-align:right; }
+.score { font-size:10px; color:#4ecb71; margin-top:2px; }
+.empty { text-align:center; padding:60px 20px; color:#555; font-size:14px; }
+.btn-row { display:flex; gap:10px; padding:12px; position:sticky; bottom:0; background:#0d0d1a; }
+.btn { flex:1; padding:12px; border:none; border-radius:8px; font-size:14px; cursor:pointer; color:#fff; }
+.btn-scan { background:#e8303a; }
+.btn-scan:disabled { opacity:0.5; }
+.btn-refresh { background:#2d5aa0; }
+.loading { text-align:center; padding:40px; color:#666; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>618 比价监测</h1>
+  <div class="stats" id="stats">加载中...</div>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('mixed')">综合</div>
+  <div class="tab" onclick="switchTab('s_level')">S级</div>
+  <div class="tab" onclick="switchTab('views')">热门</div>
+</div>
+<div id="content"><div class="loading">正在加载数据...</div></div>
+<div class="btn-row">
+  <button class="btn btn-scan" id="scanBtn" onclick="doScan()">开始扫描</button>
+  <button class="btn btn-refresh" onclick="loadData()">刷新数据</button>
+</div>
+
+<script>
+let allData = {s_level:[], views:[], mixed:[]};
+let currentTab = 'mixed';
+
+async function loadData() {
+  document.getElementById('content').innerHTML = '<div class="loading">正在加载数据...</div>';
+  try {
+    const r = await fetch('/api/deals');
+    allData = await r.json();
+    document.getElementById('stats').textContent = 
+      `共 ${allData.total} 条 | SSS:${allData.s_level.filter(d=>d.rating==='SSS').length} SS:${allData.s_level.filter(d=>d.rating==='SS').length} S:${allData.s_level.filter(d=>d.rating==='S').length}`;
+    renderTab(currentTab);
+  } catch(e) {
+    document.getElementById('content').innerHTML = '<div class="empty">无法连接服务器<br>请确保APP正在运行</div>';
+  }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  renderTab(tab);
+}
+
+function renderTab(tab) {
+  const data = allData[tab] || [];
+  const container = document.getElementById('content');
+  if (!data.length) {
+    container.innerHTML = '<div class="empty">暂无数据</div>';
+    return;
+  }
+  const titles = {mixed:'综合排行(评级60%+热度40%)', s_level:'S级排行', views:'热门排行(浏览量)'};
+  let html = `<div style="padding:8px 14px;font-size:11px;color:#666">${titles[tab]} - ${data.length}条</div>`;
+  data.forEach((d,i) => {
+    const r = d.rating || 'N';
+    const rc = r.toLowerCase();
+    const name = (d.product || d.title || '?').substring(0,35);
+    const price = d.price != null ? (d.price >= 1 ? d.price.toFixed(0) : d.price.toFixed(2)) : '?';
+    const store = d.store || '?';
+    const views = (d.views || 0).toLocaleString();
+    const score = d.score || 0;
+    const url = d.deal_url || '#';
+    html += `
+    <div class="card" onclick="window.open('${url}','_blank')" style="cursor:pointer">
+      <div class="badge ${rc}">${r}</div>
+      <div class="info">
+        <div class="name">${name}</div>
+        <div class="meta">${store} | ${views}浏览${score>0?' | '+score+'分':''}</div>
+      </div>
+      <div class="price">${price}</div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+async function doScan() {
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  btn.textContent = '扫描中...';
+  try {
+    await fetch('/api/scan');
+    await loadData();
+  } catch(e) {}
+  btn.disabled = false;
+  btn.textContent = '开始扫描';
+}
+
+loadData();
+</script>
+</body>
+</html>

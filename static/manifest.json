@@ -1,0 +1,18 @@
+{
+  "name": "618 Deal Monitor",
+  "short_name": "比价监测",
+  "description": "618促销比价监测 - 独立PWA应用",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1a2e",
+  "theme_color": "#e94560",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20192%20192%22%3E%3Crect%20width%3D%22192%22%20height%3D%22192%22%20rx%3D%2232%22%20fill%3D%22%231a1a2e%22%2F%3E%3Ctext%20x%3D%2296%22%20y%3D%2280%22%20text-anchor%3D%22middle%22%20font-size%3D%2264%22%3E%F0%9F%94%8D%3C%2Ftext%3E%3Ctext%20x%3D%2296%22%20y%3D%22140%22%20text-anchor%3D%22middle%22%20font-size%3D%2228%22%20fill%3D%22%23e94560%22%20font-weight%3D%22bold%22%3E618%3C%2Ftext%3E%3C%2Fsvg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
