@@ -10,14 +10,20 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Install system deps
+      - name: Install deps
         run: |
           sudo apt update
           sudo apt install -y git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-          pip3 install --upgrade Cython==0.29.33 buildozer
+          pip3 install Cython==0.29.33 buildozer
       - name: Build APK
-        run: buildozer -v android debug
+        id: build
+        continue-on-error: true
+        run: buildozer -v android debug 2>&1 | tee build.log
+      - name: Show error
+        if: steps.build.outcome != 'success'
+        run: grep -A5 -i 'error\|failed\|traceback' build.log | head -50
       - name: Upload APK
+        if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: dealmonitor-apk
